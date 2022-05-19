@@ -64,7 +64,6 @@ class _CameraAppState extends State<CameraApp> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     
     return Scaffold(
       appBar: AppBar(title: const Text('Take a picture')),
@@ -90,12 +89,13 @@ class _CameraAppState extends State<CameraApp> {
           // catch the error.
           try {
             // Ensure that the camera is initialized.
-            await _camera.initializeControllerFuture;
+            await _initializeControllerFuture;
 
             // Attempt to take a picture and get the file `image`
             // where it was saved.
-            final image = ImagePresenter.Capture(controller: _camera.controller);
-            print(image.path);
+            final image = await ImagePresenter.capture(controller: _controller);
+            
+    
 
             // If the picture was taken, display it on a new screen.
             await Navigator.of(context).push(

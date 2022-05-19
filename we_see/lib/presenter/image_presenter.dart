@@ -3,7 +3,9 @@ import 'package:camera/camera.dart';
 class ImagePresenter {
   
   
-  static XFile Capture({controller}){
-    return controller.takePicture();
+  static Future<XFile> capture({controller}){
+    var img = controller.takePicture();
+
+    return img;
   }
 }
