@@ -1,18 +1,31 @@
 import 'dart:io';
 
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Images{
-  late File image;
 
-  late dynamic path;
+  late String filePath;
 
-  Images({
-    required path
-  });
 
-  Future<bool?> save_images(image) {
-    return GallerySaver.saveImage(image.path);
+  Images(){
+    filePath = "";
+    init_root();
+    
+  }
+
+  set setFilePath(String filePath){
+    this.filePath = filePath;
+    // print(filePath);
+  }
+
+  Future<String> init_root() async {
+    Directory _root = await getTemporaryDirectory();
+    String dirPath = "${_root.path}/we_see";
+    await Directory(dirPath).create(recursive: true);
+    String filePath = "$dirPath/temp.jpg";
+    setFilePath = filePath;
+    return filePath;  
   }
 
 }

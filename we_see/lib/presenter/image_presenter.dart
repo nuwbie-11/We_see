@@ -1,11 +1,28 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
+import 'package:we_see/model/images.dart';
 
 class ImagePresenter {
-  
-  
-  static Future<XFile> capture({controller}){
-    var img = controller.takePicture();
+  // late String _filePath;
+  final imgModel = Images();
+  CameraController? _controller;
 
-    return img;
+  ImagePresenter({required controller}){
+    _controller = controller;
+  }
+
+  Future<File?> takePicture() async {
+    String filePath = imgModel.filePath;
+
+    try {
+      XFile img = await _controller!.takePicture();
+      print(filePath);
+      img.saveTo(filePath);
+    } catch (e) {
+      return null;
+    }
+
+    return File(filePath);
   }
 }
