@@ -41,6 +41,7 @@ dependencies:
   animated_text: ^1.0.2
   flutter_tts: ^3.2.2
   shared_preferences: ^2.0.15
+  http: ^0.13.4
   
 
 dev_dependencies:

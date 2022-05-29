@@ -10,7 +10,7 @@ import 'package:we_see/view/display.dart';
 class ImagePresenter {
 
   Future<File?> takePicture(_controller) async {
-    final imgModel = Images();
+    Images imgModel = Images();
     String filePath = await imgModel.getFilepath();
 
     try {
@@ -26,5 +26,11 @@ class ImagePresenter {
 
   MaterialPageRoute displayImage(File filePath,context) {
     return MaterialPageRoute(builder: (context)=>DisplayPictureScreen(imagePath: filePath));
+  }
+
+
+  getInsight(){
+    Images imgModel = Images();
+    return imgModel.predict();
   }
 }

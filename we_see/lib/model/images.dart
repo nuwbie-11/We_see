@@ -1,14 +1,11 @@
 import 'dart:io';
-
-import 'package:camera/camera.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:we_see/API/pythonc_con.dart';
 
-class Images{
-
+class Images {
   late String filePath;
 
-
-  set setFilePath(String filePath){
+  set setFilePath(String filePath) {
     this.filePath = filePath;
     // print(filePath);
   }
@@ -22,13 +19,17 @@ class Images{
     // if (File(filePath).existsSync() == true ) {
     //   File(filePath).delete(recursive: true);
     // }
-    while (File(filePath).existsSync() == true ) {
+    while (File(filePath).existsSync() == true) {
       // print("exist");
       i++;
       filePath = "$dirPath/temp$i.jpg";
     }
     setFilePath = filePath;
-    return filePath;  
+    return filePath;
   }
 
+  predict(){
+    Conn myConnection = Conn();
+    return myConnection.getResponse();
+  }
 }
