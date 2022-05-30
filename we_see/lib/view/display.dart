@@ -6,9 +6,9 @@ import 'package:we_see/presenter/image_presenter.dart';
 import 'package:we_see/view/camera_app.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
-  final File imagePath;
+  final File image;
 
-  const DisplayPictureScreen({Key? key, required this.imagePath})
+  const DisplayPictureScreen({Key? key, required this.image})
       : super(key: key);
 
   @override
@@ -21,7 +21,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
 
   void getContent() async {
-    var tempRes = await imgP.getInsight();
+    var tempRes = await imgP.getInsight(widget.image);
     setState(() {
       
       response = tempRes;
@@ -40,9 +40,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     return Scaffold(
         appBar: AppBar(title: const Text('Display the Picture')),
 
-        body: response.isEmpty ? const CircularProgressIndicator() :Column(
+        body: response == null || response.isEmpty ?  const Center(child: CircularProgressIndicator()) : Column(
           children: [
-            Image.file(widget.imagePath),
+            Image.file(widget.image),
             Center(
               child: Padding(
                 padding: const EdgeInsets.symmetric(

@@ -96,7 +96,7 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
                                   await imgP.takePicture(cam.getController);
                               
                               BridgeView.pushTo(context,
-                                  DisplayPictureScreen(imagePath: filepath!));
+                                  DisplayPictureScreen(image: filepath!));
                             },
                             child: const Icon(Icons.camera_alt),
                           ),

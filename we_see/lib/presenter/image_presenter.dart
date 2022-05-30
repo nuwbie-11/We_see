@@ -25,12 +25,12 @@ class ImagePresenter {
   }
 
   MaterialPageRoute displayImage(File filePath,context) {
-    return MaterialPageRoute(builder: (context)=>DisplayPictureScreen(imagePath: filePath));
+    return MaterialPageRoute(builder: (context)=>DisplayPictureScreen(image: filePath));
   }
 
 
-  getInsight(){
+  getInsight(File img){
     Images imgModel = Images();
-    return imgModel.predict();
+    return imgModel.predict(img) == null ? [] : imgModel.predict(img);
   }
 }

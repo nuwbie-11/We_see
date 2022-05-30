@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
+import 'package:http_parser/http_parser.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:we_see/API/pythonc_con.dart';
+import 'package:http/http.dart' as http;
 
 class Images {
   late String filePath;
@@ -28,8 +31,18 @@ class Images {
     return filePath;
   }
 
-  predict(){
-    Conn myConnection = Conn();
-    return myConnection.getResponse();
+  predict(File img) async {
+    http.MultipartRequest request = http.MultipartRequest(
+        'POST', Uri.parse("https://wisii.herokuapp.com/predict"));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'images',img.path,contentType: MediaType('application', 'jpeg')
+      )
+    );
+
+    http.StreamedResponse res = await request.send();
+
+    print(res.statusCode);
+    print(await res.stream.transform(utf8.decoder).join());
   }
 }
