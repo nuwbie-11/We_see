@@ -9,6 +9,7 @@ class TtsPresenter {
       await flutterTts.setPitch(1);
       await flutterTts.speak(item);
     }
+    return true;
   }
 
   greet() async {
@@ -22,13 +23,16 @@ class TtsPresenter {
       "Begini cara menggunakannya",
       "1. Lipat Uang hingga menjadi sama bagian",
       "2. Beri jarak maksimal satu jari telunjuk dan minimal seukuran jari jempol",
-      "3. Dengan menggunakan mode talkback, silahkan untuk mengakses Tombol tangkap layar",
-      "4. Kemudian tangkap gambar, terimakasih"
+      "3. Untuk menangkap gambar silahkan tap 1x",
+      "4. Terimakasih"
     ];
-    speak(messages);
+    return speak(messages);
+    
   }
 
   reporting(String result) async {
     List<String> messages = [result];
+    speak(messages);
+    return true;
   }
 }

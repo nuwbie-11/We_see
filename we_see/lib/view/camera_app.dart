@@ -17,31 +17,28 @@ class CameraApp extends StatefulWidget {
 }
 
 class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
-  List<CameraDescription> _usedCamera = [
-    const CameraDescription(
-        name: '0',
-        lensDirection: CameraLensDirection.back,
-        sensorOrientation: 90)
-  ];
+
   TtsPresenter tts = TtsPresenter();
-  late CameraPresenter cam;
+  CameraPresenter cam = CameraPresenter();
   late Future<void> _initializeControllerFuture;
+  late CameraController _controller;
+  bool _isInit = false;
 
-  void upCam() async {
-    final cameras = await availableCameras();
-
-    setState(() {
-      _usedCamera = cameras;
-    });
-  }
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance!.addObserver(this);
-    upCam();
-    cam = CameraPresenter(activeCam: _usedCamera[0]);
+    var tempVar = cam.initCam();
+
+    setState(() {
+      _isInit = tempVar;
+    });
+
+
     _initializeControllerFuture = cam.getInitializeControllerFuture;
+    _controller = cam.getController;
+    _controller.setFlashMode(FlashMode.torch);
   }
 
   @override
@@ -56,12 +53,17 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
     super.didChangeAppLifecycleState(state);
 
     if (state == AppLifecycleState.inactive) {
-      Timer(const Duration(seconds: 10), () {
+
         cam.onDispose();
-        exit(0);
-      });
+        // exit(0);
+
+    }
+    if (state == AppLifecycleState.resumed) {
+      cam.initCam();
+      _controller = cam.getController;
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -70,54 +72,48 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
       appBar: AppBar(
         title: const Text("Ambil Gambar"),
       ),
-      body: FutureBuilder<void>(
-          future: cam.getInitializeControllerFuture,
-          builder: (_, snapshot) => (snapshot.connectionState ==
-                  ConnectionState.done)
-              ? Stack(
-                  children: [
-                    Column(
+      body: _isInit ? FutureBuilder<void>(
+          future: _initializeControllerFuture,
+          builder: (_, snapshot) =>
+              (snapshot.connectionState == ConnectionState.done)
+                  ? Stack(
                       children: [
-                        SizedBox(
-                          height: MediaQuery.of(context).size.height /
-                              cam.getController.value.aspectRatio,
-                          width: MediaQuery.of(context).size.width,
-                          child: CameraPreview(cam.getController),
-                        ),
-                        const Padding(
-                            padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 5,
-                        )),
-                        Row(children: [
-                          FloatingActionButton(
-                            onPressed: () async {
-                              final filepath =
-                                  await imgP.takePicture(cam.getController);
-                              
-                              BridgeView.pushTo(context,
-                                  DisplayPictureScreen(image: filepath!));
-                            },
-                            child: const Icon(Icons.camera_alt),
-                          ),
-                          ElevatedButton(
-                              onPressed: () {
-                                tts.introduce();
-                              },
-                              child: const Text("Cara Pemakaian"))
-                        ])
-                      ],
-                    ),
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                final filepath =
+                                    await imgP.takePicture(_controller);
 
-                  ],
-                )
-              : const Center(
-                  child: SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(),
-                  ),
-                )),
+                                BridgeView.pushTo(context,
+                                    DisplayPictureScreen(image: filepath!));
+                              },
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height -
+                                    AppBar().preferredSize.height*2,
+                                width: MediaQuery.of(context).size.width,
+                                child: CameraPreview(cam.getController),
+                              ),
+                            ),
+                            const Padding(
+                                padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 5,
+                            )),
+                          ],
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(),
+                      ),
+                    )) :
+          const
+          Center(child:CircularProgressIndicator())
+          ,
     );
   }
 }

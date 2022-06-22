@@ -9,10 +9,20 @@ class CameraPresenter{
   final camModel = Images(); 
   
 
-  CameraPresenter({required activeCam}){
-    _controller = CameraController(activeCam, ResolutionPreset.medium);
+  CameraPresenter();
+
+  initCam(){
+    List<CameraDescription> _usedCamera = [
+      const CameraDescription(
+          name: '0',
+          lensDirection: CameraLensDirection.back,
+          sensorOrientation: 90)
+    ];
+    _controller = CameraController(_usedCamera[0], ResolutionPreset.max);
     _initializeControllerFuture = _controller.initialize();
+    return true;
   }
+
   
   Future<void> get getInitializeControllerFuture{
     return _initializeControllerFuture;
@@ -30,20 +40,13 @@ class CameraPresenter{
     this._controller = context;
   }
 
+  setFlashmode()async{
+    await _controller.setFlashMode(FlashMode.always);
+  }
+
 
   Future<List> getCam() async{
     return availableCameras();
-  }
-
-  Future<void> initCam() async {
-    
-    var cameras = await availableCameras();
-
-    _controller = CameraController(cameras[0], ResolutionPreset.max);
-    setController=_controller;
-
-    var initializeControllerFuture =  _controller.initialize();
-    setInitializeControllerFuture =  initializeControllerFuture;
   }
 
 

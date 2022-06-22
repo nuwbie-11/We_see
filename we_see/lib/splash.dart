@@ -62,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
       setState(() {
         Navigator.of(context).pushReplacement(
           ThisIsFadeRoute(
-            page: started ? CameraApp() : GettingStarted(),          ),
+            page: started ? const CameraApp() : const GettingStarted(),          ),
         );
       });
     });
@@ -75,7 +75,8 @@ class _SplashScreenState extends State<SplashScreen> {
   bool _e = false;
 
   @override
-  void dispose() {    super.dispose();
+  void dispose() {    
+    super.dispose();
   }
 
   @override
@@ -83,7 +84,7 @@ class _SplashScreenState extends State<SplashScreen> {
     double _h = MediaQuery.of(context).size.height;
     double _w = MediaQuery.of(context).size.width;
     return Scaffold(
-        backgroundColor: Colors.lightBlue,
+        backgroundColor: Color(0xFFFFFFFF),
         body: Center(
           child: Column(
             children: [
@@ -116,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         : 20,
                 decoration: const BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage("assets/logo.jpg"),
+                    image: AssetImage("assets/Logo Fx.png"),
                   ),                ),
               ),
             ],

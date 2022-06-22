@@ -16,16 +16,24 @@ class GettingStarted extends StatefulWidget {
 class _GettingStartedState extends State<GettingStarted> {
   bool _a = false;
   TtsPresenter tts = TtsPresenter();
+  bool isDone = false;
 
   void setStarted() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('started', true);
   }
 
+  void setDone () async {
+    var tempDone = await tts.introduce();
+    setState(() {
+      isDone = tempDone;
+    }); 
+  }
+
   @override
   void initState() {
     super.initState();
-    tts.introduce();
+    setDone();
     Timer(Duration(seconds: 8), () {
       setState(() {
         _a = true;
@@ -38,10 +46,10 @@ class _GettingStartedState extends State<GettingStarted> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-          child: _a
+          child: isDone
               ? ElevatedButton(
                   onPressed: () {
-                    BridgeView.pushTo(context, CameraApp());
+                    BridgeView.pushTo(context, const CameraApp());
                   },
                   child: const Text("Saya Paham"))
               : CircularProgressIndicator()),
