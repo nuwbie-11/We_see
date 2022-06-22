@@ -1,120 +1,119 @@
-
+import 'dart:async';
+import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:we_see/model/cameras.dart';
+import 'package:we_see/presenter/bridge_view.dart';
+import 'package:we_see/presenter/camera_presenter.dart';
 import 'package:we_see/presenter/image_presenter.dart';
+import 'package:we_see/presenter/tts_presenter.dart';
 import 'package:we_see/view/display.dart';
 
 class CameraApp extends StatefulWidget {
-  const CameraApp({
-    Key? key,
-    required this.camera,
-  }) : super(key: key);
-
-  final CameraDescription camera;
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const CameraApp({Key? key}) : super(key: key);
 
   @override
   State<CameraApp> createState() => _CameraAppState();
 }
 
-class _CameraAppState extends State<CameraApp> {
+class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
-  late Cameras _camera;
-
-
-  
-  late var _controller;
+  TtsPresenter tts = TtsPresenter();
+  CameraPresenter cam = CameraPresenter();
   late Future<void> _initializeControllerFuture;
+  late CameraController _controller;
+  bool _isInit = false;
 
+
+  @override
   void initState() {
     super.initState();
-    _camera = Cameras(camera: widget.camera);
-    // _controller = _camera.controller;
-    // To display the current output from the Camera,
-    // create a CameraController.
-    // _controller = CameraController(
-    //   // Get a specific camera from the list of available cameras.
-    //   widget.camera,
-    //   // Define the resolution to use.
-    //   ResolutionPreset.medium,
-    // );
-    _controller = _camera.init_cam();
+    WidgetsBinding.instance!.addObserver(this);
+    var tempVar = cam.initCam();
 
-    // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
+    setState(() {
+      _isInit = tempVar;
+    });
+
+
+    _initializeControllerFuture = cam.getInitializeControllerFuture;
+    _controller = cam.getController;
+    _controller.setFlashMode(FlashMode.torch);
   }
 
   @override
   void dispose() {
-    // Dispose of the controller when the widget is disposed.
-    _controller.dispose();
+    cam.onDispose();
+    WidgetsBinding.instance!.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.inactive) {
+
+        cam.onDispose();
+        // exit(0);
+
+    }
+    if (state == AppLifecycleState.resumed) {
+      cam.initCam();
+      _controller = cam.getController;
+    }
   }
 
 
   @override
   Widget build(BuildContext context) {
-    
+    final ImagePresenter imgP = ImagePresenter();
     return Scaffold(
-      appBar: AppBar(title: const Text('Take a picture')),
-      // You must wait until the controller is initialized before displaying the
-      // camera preview. Use a FutureBuilder to display a loading spinner until the
-      // controller has finished initializing.
-      body: FutureBuilder<void>(
-        future: _initializeControllerFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            // If the Future is complete, display the preview.
-            return CameraPreview(_controller);
-          } else {
-            // Otherwise, display a loading indicator.
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
+      appBar: AppBar(
+        title: const Text("Ambil Gambar"),
       ),
-      floatingActionButton: FloatingActionButton(
-        // Provide an onPressed callback.
-        onPressed: () async {
-          // Take the Picture in a try / catch block. If anything goes wrong,
-          // catch the error.
-          try {
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
+      body: _isInit ? FutureBuilder<void>(
+          future: _initializeControllerFuture,
+          builder: (_, snapshot) =>
+              (snapshot.connectionState == ConnectionState.done)
+                  ? Stack(
+                      children: [
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                final filepath =
+                                    await imgP.takePicture(_controller);
 
-            // Attempt to take a picture and get the file `image`
-            // where it was saved.
-            final image = await ImagePresenter.capture(controller: _controller);
-            
-    
-
-            // If the picture was taken, display it on a new screen.
-            await Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DisplayPictureScreen(
-                  // Pass the automatically generated path to
-                  // the DisplayPictureScreen widget.
-                  imagePath: image.path,
-                ),
-              ),
-            );
-          } catch (e) {
-            // If an error occurs, log the error to the console.
-            print(e);
-          }
-        },
-        child: const Icon(Icons.camera_alt),
-      ),
+                                BridgeView.pushTo(context,
+                                    DisplayPictureScreen(image: filepath!));
+                              },
+                              child: SizedBox(
+                                height: MediaQuery.of(context).size.height -
+                                    AppBar().preferredSize.height*2,
+                                width: MediaQuery.of(context).size.width,
+                                child: CameraPreview(cam.getController),
+                              ),
+                            ),
+                            const Padding(
+                                padding: EdgeInsets.symmetric(
+                              vertical: 8,
+                              horizontal: 5,
+                            )),
+                          ],
+                        ),
+                      ],
+                    )
+                  : const Center(
+                      child: SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(),
+                      ),
+                    )) :
+          const
+          Center(child:CircularProgressIndicator())
+          ,
     );
   }
 }
-

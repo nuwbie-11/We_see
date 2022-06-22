@@ -1,28 +1,98 @@
+import 'dart:io';
 
-
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:we_see/view/camera_app.dart';
+import 'package:we_see/splash.dart';
 
-Future<void> main() async {
-  // Ensure that plugin services are initialized so that `availableCameras()`
-  // can be called before `runApp()`
-  WidgetsFlutterBinding.ensureInitialized();
+class Transition extends PageRouteBuilder {
+  final Widget page;
 
-  // Obtain a list of the available cameras on the device.
-  final cameras = await availableCameras();
-
-  // Get a specific camera from the list of available cameras.
-  final myCamera = cameras.first;
-
-  runApp(
-    MaterialApp(
-      theme: ThemeData.dark(),
-      home: CameraApp(
-        // Pass the appropriate camera to the TakePictureScreen widget.
-        camera: myCamera,
-      ),
-    ),
-  );
+  Transition(this.page)
+      : super(
+          pageBuilder: (context, animation, anotherAnimation) => page,
+          transitionDuration: Duration(milliseconds: 1000),
+          reverseTransitionDuration: Duration(milliseconds: 200),
+          transitionsBuilder: (context, animation, anotherAnimation, child) {
+            animation = CurvedAnimation(
+                curve: Curves.fastLinearToSlowEaseIn,
+                parent: animation,
+                reverseCurve: Curves.fastOutSlowIn);
+            return Align(
+              alignment: Alignment.centerRight,
+              child: SizeTransition(
+                axis: Axis.horizontal,
+                sizeFactor: animation,
+                child: page,
+                axisAlignment: 0,
+              ),
+            );
+          },
+        );
 }
 
+class TransitionTopToBottom extends PageRouteBuilder {
+  final Widget page;
+
+  TransitionTopToBottom(this.page)
+      : super(
+          pageBuilder: (context, animation, anotherAnimation) => page,
+          transitionDuration: Duration(milliseconds: 1000),
+          reverseTransitionDuration: Duration(milliseconds: 200),
+          transitionsBuilder: (context, animation, anotherAnimation, child) {
+            animation = CurvedAnimation(
+                curve: Curves.fastLinearToSlowEaseIn,
+                parent: animation,
+                reverseCurve: Curves.fastOutSlowIn);
+            return ScaleTransition(
+              alignment: Alignment.topRight,
+              scale: animation,
+              child: child,
+            );
+          },
+        );
+}
+
+class TransitionBottomToTop extends PageRouteBuilder {
+  final Widget page;
+
+  TransitionBottomToTop(this.page)
+      : super(
+          pageBuilder: (context, animation, anotherAnimation) => page,
+          transitionDuration: Duration(milliseconds: 1000),
+          reverseTransitionDuration: Duration(milliseconds: 200),
+          transitionsBuilder: (context, animation, anotherAnimation, child) {
+            animation = CurvedAnimation(
+                curve: Curves.fastLinearToSlowEaseIn,
+                parent: animation,
+                reverseCurve: Curves.fastOutSlowIn);
+            return ScaleTransition(
+              alignment: Alignment.bottomRight,
+              scale: animation,
+              child: child,
+            );
+          },
+        );
+}
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  runApp(const MainPage());
+}
+
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  late File imageFile;
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      home: SplashScreen(),
+    );
+  }
+}

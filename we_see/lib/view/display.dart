@@ -1,29 +1,68 @@
-// A widget that displays the picture taken by the user.
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:we_see/presenter/bridge_view.dart';
+import 'package:we_see/presenter/image_presenter.dart';
+import 'package:we_see/view/camera_app.dart';
 
-class DisplayPictureScreen extends StatelessWidget {
-  final String imagePath;
+class DisplayPictureScreen extends StatefulWidget {
+  final File image;
 
-  const DisplayPictureScreen({Key? key, required this.imagePath})
-      : super(key: key);
+  const DisplayPictureScreen({Key? key, required this.image}) : super(key: key);
+
+  @override
+  State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
+}
+
+class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  ImagePresenter imgP = ImagePresenter();
+  dynamic response = [];
+
+  void getContent() async {
+    var tempRes = await imgP.getInsight(widget.image);
+    setState(() {
+      response = tempRes;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getContent();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Display the Picture')),
-      // The image is stored as a file on the device. Use the `Image.file`
-      // constructor with the given path to display the image.
-      body: Column(
-        children: [
-          Image.file(File(imagePath)),
-          Center(
-            child: Text("data"),
-          )
-        ],
-      )
-      
-    );
+        body: response == null || response.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : Column(
+                children: [
+                  SizedBox(
+                      height: MediaQuery.of(context).size.height -
+                          AppBar().preferredSize.height -
+                          200,
+                      width: MediaQuery.of(context).size.width,
+                      child: Image.file(widget.image)),
+                  Center(
+                    child: Text(response.toString()),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 15,
+                      ),
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          BridgeView.pushTo(context, const CameraApp());
+                        },
+                        child: const Text("OK"),
+                      ),
+                    ),
+                  ),
+                  
+                ],
+              ));
   }
 }
