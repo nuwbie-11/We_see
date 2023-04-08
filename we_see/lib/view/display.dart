@@ -16,7 +16,7 @@ class DisplayPictureScreen extends StatefulWidget {
 
 class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   ImagePresenter imgP = ImagePresenter();
-  dynamic response = [];
+  dynamic response = ['l'];
 
   void getContent() async {
     var tempRes = await imgP.getInsight(widget.image);
@@ -29,6 +29,12 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   void initState() {
     super.initState();
     getContent();
+  }
+
+  @override
+  void dispose() async {
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override
@@ -61,7 +67,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                       ),
                     ),
                   ),
-                  
                 ],
               ));
   }
