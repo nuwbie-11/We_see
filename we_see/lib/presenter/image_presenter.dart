@@ -9,10 +9,10 @@ class ImagePresenter {
   Future<File?> takePicture(_controller) async {
     Images imgModel = Images();
     String filePath = await imgModel.getFilepath();
-
+    
     try {
       XFile img = await _controller!.takePicture();
-      print(filePath);
+      
       // File(img.path).delete();
       img.saveTo(filePath);
     } catch (e) {
@@ -21,10 +21,10 @@ class ImagePresenter {
     return File(filePath);
   }
 
-  MaterialPageRoute displayImage(File filePath, context) {
-    return MaterialPageRoute(
-        builder: (context) => DisplayPictureScreen(image: filePath));
-  }
+  // MaterialPageRoute displayImage(File filePath, context) {
+  //   return MaterialPageRoute(
+  //       builder: (context) => DisplayPictureScreen(image: filePath));
+  // }
 
   getInsight(File img) {
     Images imgModel = Images();

@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -23,11 +27,13 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
   late Future<void> _initializeControllerFuture;
   late CameraController _controller;
   bool _isInit = false;
+  List _recognition = [];
+  bool _busy = false;
 
-  loadModel() async {
+  loadMnet() async {
     await Tflite.loadModel(
-        model: "assets/forskripsi.tflite",
-        labels: "assets/labels.txt",
+        model: "assets/0.21DR-0.0001LR-VanillaMnetSGDOPT.tflite",
+        labels: "assets/Mnetlabels.txt",
         numThreads: 1, // defaults to 1
         isAsset:
             true, // defaults to true, set to false to load resources outside assets
@@ -36,10 +42,100 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
         );
   }
 
+  doMnet(String imagePath) async {
+    String resizedImage = await saveResizedImageTemporarily(imagePath);
+
+    var recognitions = await Tflite.runModelOnImage(
+      path: resizedImage,
+      imageMean: 0.0,
+      imageStd: 255.0,
+      numResults: 2,
+      threshold: 0.1,
+    );
+
+    setState(() {
+      _recognition = recognitions!;
+    });
+  }
+
+  // This method takes in a Uint8List of bytes representing the captured image
+  Future<Uint8List> resizeImage(Uint8List imageBytes) async {
+    img.Image? oriImage = img.decodeJpg(imageBytes);
+    // img.Image resizedImage = img.copyResize(oriImage!, height: 256, width: 256);
+
+    img.Image resizedImage = img.copyResizeCropSquare(oriImage!, 256);
+
+    // Encode the resized image to a Uint8List and return it
+    return Uint8List.fromList(img.encodePng(resizedImage));
+  }
+
+  // This method takes in a String file path representing the captured image
+  Future<String> saveResizedImageTemporarily(String imagePath) async {
+    // Read the image file as bytes using the File class
+    Uint8List imageBytes = await File(imagePath).readAsBytes();
+
+    // Decode and resize the image as shown in the previous answer
+    var resizedImage = await resizeImage(imageBytes);
+
+    // Get the system's temporary directory using the Directory.systemTemp method
+    Directory tempDir = Directory.systemTemp;
+
+    // Generate a unique file name for the image using the current timestamp
+    String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+    String fileName = 'resized_image_$timestamp.png';
+
+    // Create a new file in the temporary directory with the generated file name
+    File resizedImageFile = File('${tempDir.path}/$fileName');
+
+    // Write the resized image bytes to the file
+    await resizedImageFile.writeAsBytes(resizedImage);
+
+    // Return the file path of the saved image
+    return resizedImageFile.path;
+  }
+
+
+
+  loadUnet() async {
+    await Tflite.loadModel(
+        model: "assets/myUNET_model-Dropout0.2-4Layer.tflite",
+        labels: "assets/Unetlabels.txt");
+  }
+
+  Future recognizeImageBinary(File image) async {
+    var imageBytes = await image.readAsBytes();
+
+    // var input = await resizeImage(imageBytes);
+    // print("IMAGE RESIZED");
+    var recognitions = await Tflite.runSegmentationOnBinary(
+      binary: imageBytes,
+      outputType: 'png',
+    );
+    setState(() {
+      _recognition = recognitions!;
+    });
+
+  }
+  doUnet(String imagePath) async {
+    String resizedImage = await saveResizedImageTemporarily(imagePath);
+
+    var recognitions = await Tflite.runSegmentationOnImage(
+      path: resizedImage,
+      outputType: "png",
+      imageMean: 0,
+      imageStd: 255,
+      asynch: true,
+    );
+
+    setState(() {
+      _recognition = recognitions!;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
-    loadModel();
+    loadMnet();
     WidgetsBinding.instance.addObserver(this);
     var tempVar = cam.initCam();
 
@@ -54,10 +150,10 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
   @override
   Future<void> dispose() async {
+    super.dispose();
     cam.onDispose();
     await Tflite.close();
     WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
   }
 
   @override
@@ -97,24 +193,17 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
                                         await _controller.takePicture();
                                     String imagePath = imageFile.path;
 
-                                    print(imagePath);
+                                    await doMnet(imagePath);
 
-                                    var output = await Tflite.runModelOnImage(
-                                      path: imagePath,
-                                      imageMean: 0.0,
-                                      imageStd: 255.0,
-                                      numResults: 2,
-                                      threshold: 0.1,
-                                    );
+                                    // print("Output : $_recognition");
 
-                                    String predictedLabel = output![0]['label'];
-                                    double confidence = output[0]['confidence'];
-
-                                    print(
-                                        "Predicted Label : $predictedLabel with $confidence %");
-
-                                    // BridgeView.pushTo(context,
-                                    //     DisplayPictureScreen(image: bytes!));
+                                    BridgeView.pushTo(
+                                        context,
+                                        DisplayPictureScreen(
+                                          image: File(imagePath),
+                                          result: _recognition,
+                                          type: '0',
+                                        ));
                                   },
                                   child: SizedBox(
                                     height: MediaQuery.of(context).size.height -
