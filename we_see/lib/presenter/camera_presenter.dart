@@ -40,7 +40,7 @@ class CameraPresenter {
   }
 
   setFlashmode() async {
-    await _controller.setFlashMode(FlashMode.always);
+    await _controller.setFlashMode(FlashMode.off);
   }
 
   Future<List> getCam() async {
