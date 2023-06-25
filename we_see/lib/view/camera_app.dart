@@ -27,12 +27,13 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
   late Future<void> _initializeControllerFuture;
   late CameraController _controller;
   bool _isInit = false;
-  List _recognition = [];
+  var _recognition = [];
   bool _busy = false;
 
   loadMnet() async {
+    Tflite.close();
     await Tflite.loadModel(
-        model: "assets/0.21DR-0.0001LR-VanillaMnetSGDOPT.tflite",
+        model: "assets/1x128+1x32-0.2Dr-0.0001LR-Mnetv2-glblplb2d.tflite",
         labels: "assets/Mnetlabels.txt",
         numThreads: 1, // defaults to 1
         isAsset:
@@ -50,7 +51,7 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
       imageMean: 0.0,
       imageStd: 255.0,
       numResults: 2,
-      threshold: 0.1,
+      threshold: 0.5,
     );
 
     setState(() {
@@ -63,7 +64,7 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
     img.Image? oriImage = img.decodeJpg(imageBytes);
     // img.Image resizedImage = img.copyResize(oriImage!, height: 256, width: 256);
 
-    img.Image resizedImage = img.copyResizeCropSquare(oriImage!, 256);
+    img.Image resizedImage = img.copyResizeCropSquare(oriImage!, 224);
 
     // Encode the resized image to a Uint8List and return it
     return Uint8List.fromList(img.encodePng(resizedImage));
@@ -96,36 +97,23 @@ class _CameraAppState extends State<CameraApp> with WidgetsBindingObserver {
 
 
 
-  loadUnet() async {
-    await Tflite.loadModel(
-        model: "assets/myUNET_model-Dropout0.2-4Layer.tflite",
-        labels: "assets/Unetlabels.txt");
+  Future<void> loadUnet() async{
+    Tflite.close();
+    String? res = await Tflite.loadModel(
+      model: 'assets/UNetSegmentation.tflite',
+      labels: 'assets/Unetlabels.txt',
+      );
+      print(res);
   }
 
-  Future recognizeImageBinary(File image) async {
-    var imageBytes = await image.readAsBytes();
-
-    // var input = await resizeImage(imageBytes);
-    // print("IMAGE RESIZED");
-    var recognitions = await Tflite.runSegmentationOnBinary(
-      binary: imageBytes,
-      outputType: 'png',
-    );
-    setState(() {
-      _recognition = recognitions!;
-    });
-
-  }
-  doUnet(String imagePath) async {
-    String resizedImage = await saveResizedImageTemporarily(imagePath);
-
+  Future<void> peformUnet(String imagePath) async{
+    File image = File(imagePath);
+    print('method running');
     var recognitions = await Tflite.runSegmentationOnImage(
-      path: resizedImage,
+      path: image.path,
       outputType: "png",
-      imageMean: 0,
-      imageStd: 255,
-      asynch: true,
     );
+    print("is working");
 
     setState(() {
       _recognition = recognitions!;

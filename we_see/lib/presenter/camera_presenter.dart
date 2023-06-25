@@ -16,7 +16,7 @@ class CameraPresenter {
       const CameraDescription(
           name: '0',
           lensDirection: CameraLensDirection.back,
-          sensorOrientation: 90)
+          sensorOrientation: 180)
     ];
     _controller = CameraController(_usedCamera[0], ResolutionPreset.max);
     _initializeControllerFuture = _controller.initialize();
