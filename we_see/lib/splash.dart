@@ -33,7 +33,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    checkPref();    Timer(Duration(milliseconds: 400), () {
+    checkPref();    
+    Timer(Duration(milliseconds: 400), () {
       setState(() {
         _a = true;
       });
