@@ -10,7 +10,7 @@ class Camera with ChangeNotifier {
   ImageHelper helper = ImageHelper();
 
 
-  List<CameraDescription> _availableCamera = [];
+  final List<CameraDescription> _availableCamera = [];
   List get availableCamera => _availableCamera;
 
   XFile? imageFile;

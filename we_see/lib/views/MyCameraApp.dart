@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:we_see/Logs.dart';
-import 'package:we_see/Helper/Bridge.dart';
+import 'package:we_see/Helper/bridge.dart';
 import 'package:we_see/Helper/Camera.dart';
 import 'package:we_see/Helper/Classifier.dart';
 import 'package:we_see/Views/display.dart';

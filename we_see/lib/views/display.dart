@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:we_see/Helper/Bridge.dart';
+import 'package:we_see/Helper/bridge.dart';
 import 'package:we_see/Views/MyCameraApp.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
