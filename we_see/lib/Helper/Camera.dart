@@ -1,7 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:we_see/controller/Images.dart';
+import 'package:we_see/Helper/Images.dart';
 
 class Camera with ChangeNotifier {
 

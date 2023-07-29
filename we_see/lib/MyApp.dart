@@ -2,7 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:we_see/MySplash.dart';
-import 'package:we_see/views/MyCameraApp.dart';
+import 'package:we_see/Views/MyCameraApp.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({Key? key});

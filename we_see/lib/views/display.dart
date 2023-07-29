@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:we_see/controller/Bridge.dart';
-import 'package:we_see/views/MyCameraApp.dart';
+import 'package:we_see/Helper/Bridge.dart';
+import 'package:we_see/Views/MyCameraApp.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
   final File image;
