@@ -8,7 +8,6 @@ import 'package:we_see/controller/Camera.dart';
 import 'package:we_see/controller/Classifier.dart';
 import 'package:we_see/views/display.dart';
 
-
 class MyCameraApp extends StatefulWidget {
   const MyCameraApp({Key? key});
 
@@ -16,8 +15,12 @@ class MyCameraApp extends StatefulWidget {
   State<MyCameraApp> createState() => _MyCameraAppState();
 }
 
-class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, TickerProviderStateMixin {
+class _MyCameraAppState extends State<MyCameraApp>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   final ClassificationModel classifi = ClassificationModel();
+
+
+  bool _isInitialized = false;
   Camera cam = Camera();
   CameraController? controller;
   XFile? imageFile;
@@ -31,6 +34,8 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
   double _baseScale = 1.0;
   int _pointers = 0;
 
+  List<dynamic> response = [];
+
   @override
   void initState() {
     // TODO: implement initState
@@ -38,7 +43,12 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     WidgetsBinding.instance.addObserver(this);
 
     _initilizeCam();
-
+    if (controller!=null) {
+      setState(() {
+        _isInitialized = true;
+        controller!.initialize();
+      });
+    }
   }
 
   @override
@@ -50,9 +60,7 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // TODO: implement didChangeAppLifecycleState
     final CameraController? cameraController = controller;
-   
 
     // App state changed before we got the chance to initialize.
     if (cameraController == null || !cameraController.value.isInitialized) {
@@ -66,50 +74,44 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     }
   }
 
-  
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Ambil Gambar")
-      ),
+      appBar: AppBar(title: const Text("Ambil Gambar")),
       body: Column(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  border: Border.all(
-                    color:
-                        controller != null && controller!.value.isRecordingVideo
-                            ? Colors.redAccent
-                            : Colors.grey,
-                    width: 3.0,
-                  ),
+        children: <Widget>[
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.black,
+                border: Border.all(
+                  color:
+                      controller != null && controller!.value.isRecordingVideo
+                          ? Colors.redAccent
+                          : Colors.grey,
+                  width: 3.0,
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Center(
-                    child: _cameraPreviewWidget(),
-                  ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(1.0),
+                child: Center(
+                  child: _cameraPreviewWidget(),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
     );
-
-  
   }
-  
-  void _initilizeCam() async {
 
-    final camController = await cam.initializeCameraController(const CameraDescription(
-              name: '0',
-              lensDirection: CameraLensDirection.back,
-              sensorOrientation: 180),
-              controller);
+  void _initilizeCam() async {
+    final camController = await cam.initializeCameraController(
+        const CameraDescription(
+            name: '0',
+            lensDirection: CameraLensDirection.back,
+            sensorOrientation: 180));
+
 
     
 
@@ -118,8 +120,7 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
         setState(() {});
       }
       if (camController.value.hasError) {
-        showInSnackBar(
-            'Camera error ${camController.value.errorDescription}');
+        showInSnackBar('Camera error ${camController.value.errorDescription}');
       }
     });
 
@@ -155,17 +156,18 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
       }
     }
 
-    camController.setFlashMode(FlashMode.torch);
-    setState(() {
-      controller = camController;
-    });
-    
-    print("USED CAMERA : $controller");
+
+    if (camController.value.isInitialized) {
+      setState(() {
+        controller = camController;
+        // Controller Should be initialized first to set FlashMode
+        camController.setFlashMode(FlashMode.torch);
+      });
+    }
 
     if (mounted) {
       setState(() {});
     }
-    
   }
 
   void _handleScaleStart(ScaleStartDetails details) {
@@ -184,7 +186,8 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     await controller!.setZoomLevel(_currentScale);
   }
 
-  Future<void> onViewFinderTap(TapDownDetails details, BoxConstraints constraints) async {
+  Future<void> onViewFinderTap(
+      TapDownDetails details, BoxConstraints constraints) async {
     if (controller == null) {
       return;
     }
@@ -197,13 +200,14 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     );
     cameraController.setExposurePoint(offset);
     cameraController.setFocusPoint(offset);
-    
 
-    File images = File(await cam.onPictureTake(controller!));
-    print("FEEDBACK");
-    print(images.path);
-    dynamic result = classifi.predictImage(images.path);
-    BridgeView.pushTo(context, DisplayPictureScreen(image: images, result: result));
+    // onTakePicture();
+
+    // File images = File(await cam.onPictureTake(controller!));
+    // print("FEEDBACK");
+    // print(images.path);
+    // dynamic result = classifi.predictImage(images.path);
+    // BridgeView.pushTo(context, DisplayPictureScreen(image: images, result: result));
     // cameraController.takePicture().then((XFile? file) {
     //   if (mounted) {
     //     setState(() {
@@ -217,10 +221,43 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     // });
   }
 
-  // void onTakePicture(){
-  //   cam.onPictureTake(cameraController);
-  // }
-  
+  void onTakePicture() async {
+    if (controller == null) {
+      return;
+    }
+
+    final ClassificationModel classifier = ClassificationModel();
+    final CameraController cameraController = controller!;
+
+
+    // Takes Picture
+    String imagePath = await cam.onPictureTake(cameraController);
+    if (imagePath != null){
+      setState(() {
+        imageFile = XFile(imagePath);
+      });
+    }
+
+    // Predict Image
+    List<dynamic> feed = await classifier.predictImage(imageFile!.path);
+    if (feed != null) {
+      setState(() {
+        response = feed;
+      });
+    }
+
+
+    print('Result Forked : $response');
+
+    // Pass Captured Image to DisplayScreen
+    BridgeView.pushTo(
+        context,
+        DisplayPictureScreen(
+          image: File(imageFile!.path),
+          result: response,
+        ));
+  }
+
   void showInSnackBar(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -230,33 +267,26 @@ class _MyCameraAppState extends State<MyCameraApp> with WidgetsBindingObserver, 
     Log().logError(e.code, e.description);
     showInSnackBar('Error: ${e.code}\n${e.description}');
   }
-  
-  Widget _cameraPreviewWidget(){
+
+  Widget _cameraPreviewWidget() {
     final CameraController? cameraController = controller;
 
     if (cameraController == null || !cameraController.value.isInitialized) {
-      return const Text(
-        'Tap a camera',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 24.0,
-          fontWeight: FontWeight.w900,
-        ),
-      );
+      return const Center(child: CircularProgressIndicator());
     } else {
       return CameraPreview(
-          controller!,
-          child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-            return GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onScaleStart: _handleScaleStart,
-              onScaleUpdate: _handleScaleUpdate,
-              onTapDown: (TapDownDetails details) =>
-                  onViewFinderTap(details, constraints),
-                  
-            );
-          }),
+        controller!,
+        child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+          return GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onScaleStart: _handleScaleStart,
+            onScaleUpdate: _handleScaleUpdate,
+            onTap: () => onTakePicture(),
+            // onTapDown: (TapDownDetails details) =>
+            //     onViewFinderTap(details, constraints),
+          );
+        }),
       );
     }
   }

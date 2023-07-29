@@ -31,7 +31,7 @@ class ClassificationModel{
       numResults: 2,
       threshold: 0.5,
     );
-    print('Result : $result');
+    // print('Result : $result');
     return result;
   }
 

@@ -12,8 +12,8 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  // This widget is the root of your application.
-
+  
+  // Sees if the user already Started app once
   bool started = false;
 
 
@@ -23,6 +23,7 @@ class _MyAppState extends State<MyApp> {
     // ignore: avoid_print
     print('Error: $code${message == null ? '' : '\nError Message: $message'}');
   }
+
 
   Future<void> _checkCamera() async {
     try {
@@ -34,7 +35,8 @@ class _MyAppState extends State<MyApp> {
       }
   }
 
-  void checkPref() async {
+
+  void _checkPref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     if (prefs.getBool('started') == null) {
       setState(() {
@@ -50,11 +52,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
-    // TODO: implement initState
 
-    
-    checkPref();
+
+    _checkPref();
     _checkCamera();
+
     super.initState();
   }
 
