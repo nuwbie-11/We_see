@@ -14,3 +14,8 @@ Enchancement :
 
 Known Issue : 
 - Can't predict or classify stacked object. Leading to poor result
+
+
+Result Example :
+![Screenshot_2023-06-18-19-20-58-942_com example we_see](https://github.com/nuwbie-11/We_see/assets/63080447/0a2bda99-88d5-450d-b820-3af1125c4427)
+
